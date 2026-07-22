@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Gabi Training</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #14161A;
+    --surface: #1D2025;
+    --surface-2: #262A31;
+    --line: #33383F;
+    --text: #EDEAE3;
+    --text-muted: #8A8F98;
+    --purple: #8B5CF6;
+    --purple-dim: #2F2140;
+    --lavender: #B9A6EA;
+    --lavender-dim: #332B47;
+    --gray-accent: #9490A0;
+    --gray-dim: #302E38;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',system-ui,sans-serif;
+    -webkit-tap-highlight-color:transparent;
+    padding-bottom:96px;
+  }
+  .app{max-width:520px;margin:0 auto;padding:20px 16px 12px;}
+
+  .brand{
+    font-family:'Bebas Neue',sans-serif; font-size:15px; letter-spacing:0.18em;
+    color:var(--lavender); text-transform:uppercase; margin-bottom:14px;
+  }
+  .brand span{color:var(--text-muted);}
+
+  .header{margin-bottom:18px;}
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--text-muted);
+  }
+  h1{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:40px;
+    letter-spacing:0.02em;
+    margin:2px 0 14px;
+    line-height:0.95;
+    color:var(--text);
+  }
+  .tabs{display:flex;gap:6px;background:var(--surface);padding:4px;border-radius:10px;margin-bottom:16px;}
+  .tab{
+    flex:1;text-align:center;padding:9px 0;border-radius:7px;
+    font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:0.03em;
+    color:var(--text-muted); cursor:pointer; user-select:none; border:none; background:none;
+  }
+  .tab.active{background:var(--purple);color:#fff;}
+
+  .field-label{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;letter-spacing:0.08em;text-transform:uppercase;
+    color:var(--text-muted); margin-bottom:6px; display:block;
+  }
+  input, select{
+    width:100%; background:var(--surface-2); border:1px solid var(--line);
+    color:var(--text); border-radius:8px; padding:11px 12px; font-size:16px;
+    font-family:'Inter',sans-serif; outline:none;
+  }
+  input:focus, select:focus{border-color:var(--purple);}
+  input::placeholder{color:var(--text-muted);}
+
+  .chip-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+  .chip{
+    padding:9px 16px; border-radius:20px; border:1.5px solid var(--line);
+    color:var(--text-muted); font-family:'Bebas Neue',sans-serif; font-size:16px;
+    letter-spacing:0.03em; cursor:pointer; background:none;
+  }
+  .chip.selected{background:var(--purple); border-color:var(--purple); color:#fff;}
+  .chip-add{border-style:dashed; color:var(--lavender); border-color:var(--lavender);}
+  .chip-add-form{display:flex; gap:6px; align-items:center;}
+  .chip-add-form input{width:110px; padding:8px 10px; font-size:14px;}
+  .chip-add-form button{
+    background:var(--lavender); border:none; color:#241c33; border-radius:8px; padding:8px 12px;
+    font-family:'Bebas Neue',sans-serif; font-size:14px;
+  }
+
+  .card{
+    background:var(--surface); border:1px solid var(--line); border-radius:14px;
+    padding:14px 14px 12px; margin-bottom:14px;
+  }
+  .ex-header{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:4px;}
+  .ex-name{font-size:17px;font-weight:600;}
+  .ex-remove{
+    background:none;border:none;color:var(--text-muted);font-size:13px;
+    font-family:'JetBrains Mono',monospace; cursor:pointer; padding:4px;
+  }
+  .ex-hint{font-size:12px;color:var(--text-muted);margin-bottom:10px;font-family:'JetBrains Mono',monospace;}
+
+  .video-row{display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap;}
+  .video-link{
+    color:var(--lavender); font-family:'JetBrains Mono',monospace; font-size:12px;
+    text-decoration:none; font-weight:700; display:inline-flex; align-items:center; gap:4px;
+  }
+  .video-edit-btn{
+    background:none; border:none; color:var(--text-muted); font-family:'JetBrains Mono',monospace;
+    font-size:11px; cursor:pointer; text-decoration:underline;
+  }
+  .video-add-btn{
+    background:none; border:1px dashed var(--line); color:var(--text-muted); font-family:'JetBrains Mono',monospace;
+    font-size:12px; border-radius:6px; padding:6px 10px; cursor:pointer;
+  }
+  .video-row.editing input{flex:1; min-width:120px; font-size:13px; padding:8px 10px;}
+  .video-row.editing button{
+    background:var(--purple); border:none; color:#fff; border-radius:8px; padding:8px 12px;
+    font-family:'Bebas Neue',sans-serif; font-size:14px; letter-spacing:0.03em;
+  }
+
+  .plates{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
+  .plate{
+    width:52px;height:44px;border-radius:8px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; line-height:1.15;
+    border:2px solid var(--line); color:var(--text-muted); cursor:pointer; position:relative;
+  }
+  .plate.filled{
+    background:var(--purple-dim); border-color:var(--purple); color:var(--text);
+  }
+  .plate .del{
+    position:absolute; top:-6px; right:-6px; width:16px;height:16px;border-radius:50%;
+    background:var(--gray-accent); color:#fff; font-size:10px; display:flex;align-items:center;justify-content:center;
+    line-height:1;
+  }
+  .plate-add{
+    border-style:dashed; color:var(--lavender); border-color:var(--lavender);
+  }
+
+  .set-entry{display:flex; gap:8px; margin-bottom:8px; align-items:center;}
+  .set-entry input{width:auto;flex:1;text-align:center; font-family:'JetBrains Mono',monospace; font-weight:600;}
+  .set-entry .x{color:var(--text-muted); font-family:'JetBrains Mono',monospace;}
+  .set-confirm{
+    background:var(--purple); border:none; color:#ffffff; font-weight:700; border-radius:8px;
+    padding:11px 14px; font-family:'Bebas Neue',sans-serif; font-size:16px; letter-spacing:0.03em;
+  }
+
+  .add-exercise{
+    width:100%; background:none; border:1.5px dashed var(--line); color:var(--text-muted);
+    border-radius:12px; padding:14px; font-family:'Bebas Neue',sans-serif; font-size:18px;
+    letter-spacing:0.03em; margin-bottom:10px; cursor:pointer;
+  }
+  .add-exercise:active{border-color:var(--lavender); color:var(--lavender);}
+
+  .bottom-bar{
+    position:fixed; bottom:0; left:0; right:0; background:var(--bg);
+    border-top:1px solid var(--line); padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+  }
+  .bottom-bar .inner{max-width:520px;margin:0 auto;}
+  .save-btn{
+    width:100%; background:var(--purple); color:#fff; border:none; border-radius:10px;
+    padding:14px; font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:0.04em;
+    cursor:pointer;
+  }
+  .save-btn:disabled{background:var(--surface-2); color:var(--text-muted);}
+  .save-msg{text-align:center; font-size:12px; color:var(--purple); font-family:'JetBrains Mono',monospace; margin-top:6px; min-height:16px;}
+
+  .empty{text-align:center; color:var(--text-muted); padding:40px 10px; font-size:14px;}
+
+  .hist-item{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:10px; cursor:pointer;}
+  .hist-top{display:flex; justify-content:space-between; align-items:center;}
+  .hist-date{font-family:'Bebas Neue',sans-serif; font-size:20px;}
+  .hist-routine{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--lavender); background:var(--lavender-dim); padding:3px 8px; border-radius:6px;}
+  .hist-summary{font-size:12px; color:var(--text-muted); margin-top:4px;}
+  .hist-detail{margin-top:12px; border-top:1px solid var(--line); padding-top:10px;}
+  .hist-ex{margin-bottom:8px;}
+  .hist-ex-name{font-weight:600; font-size:14px; margin-bottom:3px;}
+  .hist-sets{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-muted);}
+
+  .del-session{background:none;border:none;color:var(--gray-accent); font-family:'JetBrains Mono',monospace; font-size:11px; margin-top:10px; cursor:pointer;}
+
+  .backup-box{margin-top:20px; padding:14px; border:1px solid var(--line); border-radius:12px; background:var(--surface);}
+  .backup-label{
+    font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.06em;
+    text-transform:uppercase; color:var(--text-muted); margin-bottom:10px;
+  }
+  .backup-buttons{display:flex; gap:8px; flex-wrap:wrap;}
+  .backup-buttons button{
+    background:var(--surface-2); border:1px solid var(--line); color:var(--text);
+    border-radius:8px; padding:9px 14px; font-family:'Bebas Neue',sans-serif;
+    font-size:14px; letter-spacing:0.03em; cursor:pointer;
+  }
+
+  .stat-summary{
+    display:flex; justify-content:space-between; background:var(--surface); border:1px solid var(--line);
+    border-radius:12px; padding:14px 16px; margin-bottom:16px;
+  }
+  .stat-summary div{text-align:center; flex:1;}
+  .stat-summary .num{font-family:'Bebas Neue',sans-serif; font-size:26px; color:var(--text);}
+  .stat-summary .lbl{font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.06em; color:var(--text-muted); text-transform:uppercase;}
+
+  .stat-card{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:12px;}
+  .stat-ex-top{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;}
+  .stat-ex-name{font-size:16px; font-weight:600;}
+  .stat-delta{font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:700; padding:3px 9px; border-radius:6px;}
+  .stat-delta.up{color:var(--purple); background:var(--purple-dim);}
+  .stat-delta.down{color:var(--gray-accent); background:var(--gray-dim);}
+  .stat-delta.same{color:var(--text-muted); background:var(--surface-2);}
+  .stat-last{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-muted); margin-top:8px;}
+
+  .cal-nav{display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;}
+  .cal-nav button{
+    background:var(--surface-2); border:1px solid var(--line); color:var(--text);
+    border-radius:8px; width:38px; height:38px; font-size:18px; cursor:pointer;
+  }
+  .cal-month-label{font-family:'Bebas Neue',sans-serif; font-size:24px; letter-spacing:0.03em;}
+  .cal-weekdays{display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-bottom:6px;}
+  .cal-weekday{text-align:center; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-muted);}
+  .cal-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-bottom:18px;}
+  .cal-cell{
+    aspect-ratio:1; display:flex; align-items:center; justify-content:center;
+    border-radius:8px; font-family:'JetBrains Mono',monospace; font-size:14px;
+    color:var(--text-muted); cursor:pointer; position:relative; border:1.5px solid transparent;
+  }
+  .cal-cell.empty{visibility:hidden; cursor:default;}
+  .cal-cell.has-data{background:var(--purple-dim); color:var(--text); font-weight:700;}
+  .cal-cell.has-data::after{
+    content:''; position:absolute; bottom:4px; width:4px; height:4px; border-radius:50%; background:var(--purple);
+  }
+  .cal-cell.selected{border-color:var(--purple);}
+  .cal-cell.is-today{box-shadow:inset 0 0 0 1.5px var(--lavender);}
+  .cal-detail-label{
+    font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.08em;
+    text-transform:uppercase; color:var(--text-muted); margin-bottom:8px;
+  }
+
+  .suggest-wrap{position:relative; flex:1;}
+  .suggest-list{
+    display:none; position:absolute; top:calc(100% + 4px); left:0; right:0;
+    background:var(--surface-2); border:1px solid var(--line); border-radius:8px;
+    max-height:180px; overflow-y:auto; z-index:30;
+    box-shadow:0 8px 20px rgba(0,0,0,0.35);
+  }
+  .suggest-item{
+    padding:11px 12px; font-size:14px; border-bottom:1px solid var(--line); cursor:pointer;
+  }
+  .suggest-item:last-child{border-bottom:none;}
+  .suggest-item:active{background:var(--surface);}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+const STORAGE_KEY = 'gymlog:sessions';
+const STORAGE_KEY_NAMES = 'gymlog:knownNames';
+const LS_PREFIX = 'gabitraining:';
+
+// Shim que imita la API de window.storage pero usando localStorage del navegador,
+// para que esta versión funcione hosteada fuera de Claude (ej. GitHub Pages).
+const storage = {
+  async get(key){
+    const raw = localStorage.getItem(LS_PREFIX + key);
+    if(raw === null || raw === undefined) return null;
+    return { key, value: raw };
+  },
+  async set(key, value){
+    localStorage.setItem(LS_PREFIX + key, value);
+    return { key, value };
+  },
+  async delete(key){
+    localStorage.removeItem(LS_PREFIX + key);
+    return { key, deleted: true };
+  }
+};
+let sessions = [];
+let knownNames = { dayTypes: [], variants: [], exercises: [], exerciseVideos: {} };
+
+const SEED_NAMES = {
+  dayTypes: ['Piernas', 'Brazo'],
+  variants: ['A', 'B'],
+  exercises: [
+    'Sentadilla en Smith',
+    'Búlgara con mancuerna',
+    'Leg extension',
+    'Abducción de cadera',
+    'Pantorrilla',
+    'Hack squat',
+    'Peso muerto',
+    'Hip thrust',
+    'Leg curl tumbado'
+  ]
+};
+let addingDayType = false;
+let addingVariant = false;
+let selectedStatRoutine = null;
+let calDate = new Date();
+let selectedCalDay = null;
+let editingVideoFor = null;
+let view = 'today';
+let currentSession = null; // {date, dateLabel, routine, exercises:[{id,name,sets:[{weight,reps}]}]}
+let expandedHistId = null;
+let saving = false;
+let saveMsg = '';
+
+const DIAS = ['DOMINGO','LUNES','MARTES','MIÉRCOLES','JUEVES','VIERNES','SÁBADO'];
+const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+const MESES_FULL = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const DIAS_CORTOS = ['D','L','M','X','J','V','S'];
+
+function pad2(n){ return String(n).padStart(2, '0'); }
+
+function todayInfo(){
+  const d = new Date();
+  const iso = d.toISOString().slice(0,10);
+  const label = `${DIAS[d.getDay()]} ${d.getDate()} ${MESES[d.getMonth()]}`;
+  return {iso, label};
+}
+
+function newSession(){
+  const t = todayInfo();
+  return { id: 's'+Date.now(), date: t.iso, dateLabel: t.label, dayType: '', variant: '', routine: '', exercises: [] };
+}
+
+function newExercise(name){
+  return { id: 'e'+Date.now()+Math.random().toString(36).slice(2,6), name: name||'', sets: [] };
+}
+
+async function loadSessions(){
+  try{
+    const res = await storage.get(STORAGE_KEY, false);
+    sessions = res && res.value ? JSON.parse(res.value) : [];
+  }catch(e){
+    sessions = [];
+  }
+  try{
+    const resNames = await storage.get(STORAGE_KEY_NAMES, false);
+    knownNames = resNames && resNames.value ? JSON.parse(resNames.value) : null;
+  }catch(e){
+    knownNames = null;
+  }
+  if(!knownNames){
+    knownNames = { dayTypes: [...SEED_NAMES.dayTypes], variants: [...SEED_NAMES.variants], exercises: [...SEED_NAMES.exercises], exerciseVideos: {} };
+    try{ await storage.set(STORAGE_KEY_NAMES, JSON.stringify(knownNames), false); }catch(e){}
+  } else {
+    let migrated = false;
+    if(!knownNames.dayTypes){ knownNames.dayTypes = [...SEED_NAMES.dayTypes]; migrated = true; }
+    if(!knownNames.variants){ knownNames.variants = [...SEED_NAMES.variants]; migrated = true; }
+    if(!knownNames.exercises){ knownNames.exercises = [...SEED_NAMES.exercises]; migrated = true; }
+    if(!knownNames.exerciseVideos){ knownNames.exerciseVideos = {}; migrated = true; }
+    if(migrated){ try{ await storage.set(STORAGE_KEY_NAMES, JSON.stringify(knownNames), false); }catch(e){} }
+  }
+  currentSession = newSession();
+  render();
+}
+
+async function persistKnownNames(){
+  try{ await storage.set(STORAGE_KEY_NAMES, JSON.stringify(knownNames), false); }catch(e){}
+}
+
+async function addDayType(val){
+  val = val.trim();
+  if(!val) return;
+  if(!knownNames.dayTypes.includes(val)) knownNames.dayTypes.push(val);
+  currentSession.dayType = val;
+  addingDayType = false;
+  await persistKnownNames();
+  render();
+}
+
+async function addVariant(val){
+  val = val.trim();
+  if(!val) return;
+  if(!knownNames.variants.includes(val)) knownNames.variants.push(val);
+  currentSession.variant = val;
+  addingVariant = false;
+  await persistKnownNames();
+  render();
+}
+
+async function rememberExerciseNames(exerciseNames){
+  let changed = false;
+  exerciseNames.forEach(n => {
+    if(n && !knownNames.exercises.includes(n)){ knownNames.exercises.push(n); changed = true; }
+  });
+  if(changed) await persistKnownNames();
+}
+
+function getExerciseVideo(name){
+  if(!name || !name.trim()) return '';
+  return knownNames.exerciseVideos[normalize(name)] || '';
+}
+
+async function setExerciseVideo(name, url){
+  const key = normalize(name);
+  if(!key) return;
+  url = url.trim();
+  if(url) knownNames.exerciseVideos[key] = url;
+  else delete knownNames.exerciseVideos[key];
+  editingVideoFor = null;
+  await persistKnownNames();
+  render();
+}
+
+async function persist(){
+  try{
+    await storage.set(STORAGE_KEY, JSON.stringify(sessions), false);
+    return true;
+  }catch(e){
+    return false;
+  }
+}
+
+function lastStatsFor(name){
+  if(!name) return null;
+  const n = name.trim().toLowerCase();
+  if(!n) return null;
+  for(let i = sessions.length - 1; i >= 0; i--){
+    const s = sessions[i];
+    for(const ex of s.exercises){
+      if(ex.name.trim().toLowerCase() === n && ex.sets.length){
+        return {dateLabel: s.dateLabel, sets: ex.sets};
+      }
+    }
+  }
+  return null;
+}
+
+function allExerciseNames(){
+  const set = new Set();
+  sessions.forEach(s => s.exercises.forEach(ex => { if(ex.name) set.add(ex.name); }));
+  return Array.from(set);
+}
+
+function normalize(s){
+  return (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+}
+
+function recentUnique(list){
+  const seen = new Set(); const out = [];
+  for(let i = list.length - 1; i >= 0; i--){
+    if(!seen.has(list[i])){ seen.add(list[i]); out.push(list[i]); }
+  }
+  return out;
+}
+
+function recentExerciseNames(){
+  const arr = [];
+  sessions.forEach(s => s.exercises.forEach(e => { if(e.name) arr.push(e.name); }));
+  const fromSessions = recentUnique(arr);
+  const rest = knownNames.exercises.filter(n => !fromSessions.includes(n));
+  return [...fromSessions, ...rest];
+}
+
+function filterNames(query, names){
+  const q = normalize(query);
+  if(!q) return names.slice(0, 6);
+  const starts = names.filter(n => normalize(n).startsWith(q));
+  const contains = names.filter(n => normalize(n).includes(q) && !starts.includes(n));
+  return [...starts, ...contains].slice(0, 6);
+}
+
+function showSuggestions(listEl, names, onSelect){
+  if(!listEl) return;
+  if(!names.length){ listEl.style.display = 'none'; listEl.innerHTML = ''; return; }
+  listEl.innerHTML = names.map(n => `<div class="suggest-item">${esc(n)}</div>`).join('');
+  listEl.style.display = 'block';
+  Array.from(listEl.children).forEach((item, i) => {
+    item.onmousedown = (e) => { e.preventDefault(); onSelect(names[i]); listEl.style.display = 'none'; };
+    item.ontouchstart = (e) => { e.preventDefault(); onSelect(names[i]); listEl.style.display = 'none'; };
+  });
+}
+
+// ---------- actions ----------
+function addExercise(){ currentSession.exercises.push(newExercise('')); render(); }
+function removeExercise(exId){
+  currentSession.exercises = currentSession.exercises.filter(e => e.id !== exId);
+  render();
+}
+function setExerciseName(exId, val){
+  const ex = currentSession.exercises.find(e => e.id === exId);
+  if(ex) ex.name = val;
+  render();
+}
+function addSetSlot(exId){
+  const ex = currentSession.exercises.find(e => e.id === exId);
+  if(!ex) return;
+  ex.sets.push({weight:'', reps:'', pending:true});
+  render();
+}
+function confirmSet(exId, idx, weightVal, repsVal){
+  const ex = currentSession.exercises.find(e => e.id === exId);
+  if(!ex) return;
+  ex.sets[idx] = {weight: weightVal, reps: repsVal, pending:false};
+  render();
+}
+function removeSet(exId, idx){
+  const ex = currentSession.exercises.find(e => e.id === exId);
+  if(!ex) return;
+  ex.sets.splice(idx,1);
+  render();
+}
+
+async function saveSession(){
+  if(saving) return;
+  saving = true; saveMsg = ''; render();
+  const routineLabel = [currentSession.dayType, currentSession.variant].filter(Boolean).join(' ');
+  const cleaned = {
+    ...currentSession,
+    routine: routineLabel,
+    exercises: currentSession.exercises
+      .filter(ex => ex.name.trim() && ex.sets.some(s => !s.pending))
+      .map(ex => ({...ex, sets: ex.sets.filter(s => !s.pending)}))
+  };
+  sessions.push(cleaned);
+  const ok = await persist();
+  await rememberExerciseNames(cleaned.exercises.map(e => e.name));
+  saving = false;
+  saveMsg = ok ? 'Sesión guardada ✓' : 'No se pudo guardar, intenta de nuevo';
+  if(ok) currentSession = newSession();
+  render();
+  setTimeout(()=>{ saveMsg=''; render(); }, 2500);
+}
+
+async function deleteSession(id){
+  sessions = sessions.filter(s => s.id !== id);
+  await persist();
+  render();
+}
+
+function exportBackup(){
+  const data = { app: 'Gabi Training', exportedAt: new Date().toISOString(), sessions, knownNames };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `gabi-training-respaldo-${todayInfo().iso}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function importBackup(file){
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try{
+      const data = JSON.parse(e.target.result);
+      if(Array.isArray(data.sessions)) sessions = data.sessions;
+      if(data.knownNames) knownNames = data.knownNames;
+      await persist();
+      await persistKnownNames();
+      saveMsg = 'Respaldo importado ✓';
+      render();
+      setTimeout(() => { saveMsg = ''; render(); }, 2500);
+    }catch(err){
+      alert('Ese archivo no es un respaldo válido de Gabi Training.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function canSave(){
+  return currentSession.exercises.some(ex => ex.name.trim() && ex.sets.some(s => !s.pending));
+}
+
+// ---------- render ----------
+function el(html){ const d = document.createElement('div'); d.innerHTML = html.trim(); return d.firstElementChild; }
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function renderPlates(ex){
+  let html = '<div class="plates">';
+  ex.sets.forEach((s, idx) => {
+    if(s.pending){
+      html += `<div class="plate" data-role="pending-slot" data-ex="${ex.id}" data-idx="${idx}">
+        <span>SET ${idx+1}</span><span>—</span>
+      </div>`;
+    } else {
+      html += `<div class="plate filled" data-role="edit-slot" data-ex="${ex.id}" data-idx="${idx}">
+        <span class="del" data-role="del-set" data-ex="${ex.id}" data-idx="${idx}">×</span>
+        <span>${esc(s.weight)}kg</span><span>${esc(s.reps)}r</span>
+      </div>`;
+    }
+  });
+  html += `<div class="plate plate-add" data-role="add-set" data-ex="${ex.id}"><span>+</span><span>set</span></div>`;
+  html += '</div>';
+  return html;
+}
+
+function renderPendingEntry(ex){
+  const idx = ex.sets.findIndex(s => s.pending);
+  if(idx === -1) return '';
+  return `
+    <div class="set-entry">
+      <input type="number" inputmode="decimal" placeholder="kg" data-role="w-input" data-ex="${ex.id}" data-idx="${idx}">
+      <span class="x">×</span>
+      <input type="number" inputmode="numeric" placeholder="reps" data-role="r-input" data-ex="${ex.id}" data-idx="${idx}">
+      <button class="set-confirm" data-role="confirm-set" data-ex="${ex.id}" data-idx="${idx}">OK</button>
+    </div>`;
+}
+
+function renderVideoRow(ex){
+  if(!ex.name || !ex.name.trim()) return '';
+  if(editingVideoFor === ex.id){
+    const url = getExerciseVideo(ex.name);
+    return `<div class="video-row editing">
+      <input type="url" inputmode="url" placeholder="Pega el link de YouTube" value="${esc(url)}" data-role="video-input" data-ex="${ex.id}">
+      <button data-role="video-save" data-ex="${ex.id}">Guardar</button>
+    </div>`;
+  }
+  const url = getExerciseVideo(ex.name);
+  if(url){
+    return `<div class="video-row">
+      <a href="${esc(url)}" target="_blank" rel="noopener" class="video-link">▶ Ver video</a>
+      <button class="video-edit-btn" data-role="video-edit" data-ex="${ex.id}">editar</button>
+    </div>`;
+  }
+  return `<div class="video-row">
+    <button class="video-add-btn" data-role="video-add" data-ex="${ex.id}">+ Video de referencia</button>
+  </div>`;
+}
+
+function renderExerciseCard(ex){
+  const stats = lastStatsFor(ex.name);
+  let hint = '';
+  if(stats){
+    const setsStr = stats.sets.map(s => `${s.weight}×${s.reps}`).join(', ');
+    hint = `<div class="ex-hint">Última vez (${stats.dateLabel}): ${esc(setsStr)}</div>`;
+  }
+  return `
+    <div class="card">
+      <div class="ex-header">
+        <div class="suggest-wrap">
+          <input placeholder="Nombre del ejercicio" value="${esc(ex.name)}" data-role="ex-name" data-ex="${ex.id}" autocomplete="off" style="font-size:17px;font-weight:600;">
+          <div class="suggest-list" data-role="ex-suggest" data-ex="${ex.id}"></div>
+        </div>
+        <button class="ex-remove" data-role="remove-ex" data-ex="${ex.id}">quitar</button>
+      </div>
+      ${renderVideoRow(ex)}
+      ${hint}
+      ${renderPlates(ex)}
+      ${renderPendingEntry(ex)}
+    </div>`;
+}
+
+function renderChipRow(options, selected, roleSelect, roleAdd, adding, roleAddInput, roleAddConfirm){
+  const chips = options.map(o => `<div class="chip ${selected===o?'selected':''}" data-role="${roleSelect}" data-val="${esc(o)}">${esc(o)}</div>`).join('');
+  const addChip = adding
+    ? `<div class="chip-add-form"><input type="text" placeholder="nuevo..." data-role="${roleAddInput}"><button data-role="${roleAddConfirm}">OK</button></div>`
+    : `<div class="chip chip-add" data-role="${roleAdd}">+ nuevo</div>`;
+  return `<div class="chip-row">${chips}${addChip}</div>`;
+}
+
+function renderToday(){
+  const t = currentSession.dateLabel;
+  return `
+    <div class="header">
+      <span class="eyebrow">Hoy</span>
+      <h1>${t}</h1>
+    </div>
+    <label class="field-label">Día</label>
+    ${renderChipRow(knownNames.dayTypes, currentSession.dayType, 'daytype-select', 'daytype-add', addingDayType, 'daytype-add-input', 'daytype-add-confirm')}
+    <label class="field-label">Rutina</label>
+    ${renderChipRow(knownNames.variants, currentSession.variant, 'variant-select', 'variant-add', addingVariant, 'variant-add-input', 'variant-add-confirm')}
+    <div id="exercises-list">
+      ${currentSession.exercises.map(renderExerciseCard).join('') || ''}
+    </div>
+    <button class="add-exercise" data-role="add-exercise">+ Agregar ejercicio</button>
+  `;
+}
+
+function distinctRoutineLabels(){
+  const seen = [];
+  sessions.forEach(s => { if(s.routine && !seen.includes(s.routine)) seen.push(s.routine); });
+  return seen;
+}
+
+function statsForRoutine(routineLabel){
+  const list = sessions.filter(s => s.routine === routineLabel);
+  const exerciseMap = new Map();
+  list.forEach(s => {
+    s.exercises.forEach(ex => {
+      if(!ex.sets.length) return;
+      const weights = ex.sets.map(st => parseFloat(st.weight) || 0);
+      const maxW = Math.max(...weights);
+      if(!exerciseMap.has(ex.name)) exerciseMap.set(ex.name, []);
+      exerciseMap.get(ex.name).push({ dateLabel: s.dateLabel, maxWeight: maxW, sets: ex.sets });
+    });
+  });
+  return {
+    totalSessions: list.length,
+    first: list.length ? list[0].dateLabel : '',
+    last: list.length ? list[list.length - 1].dateLabel : '',
+    exerciseMap
+  };
+}
+
+function sparkline(values){
+  const w = 280, h = 54, pad = 8;
+  if(values.length === 0) return '';
+  const max = Math.max(...values), min = Math.min(...values);
+  const range = (max - min) || 1;
+  const stepX = values.length > 1 ? (w - 2*pad) / (values.length - 1) : 0;
+  const pts = values.map((v, i) => {
+    const x = pad + i * stepX;
+    const y = pad + (h - 2*pad) * (1 - (v - min) / range);
+    return [x.toFixed(1), y.toFixed(1)];
+  });
+  const line = pts.length > 1
+    ? `<polyline points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="#8B5CF6" stroke-width="2.5"/>`
+    : '';
+  const dots = pts.map(p => `<circle cx="${p[0]}" cy="${p[1]}" r="4" fill="#8B5CF6"/>`).join('');
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" preserveAspectRatio="none">${line}${dots}</svg>`;
+}
+
+function renderStatsExerciseCard(name, entries){
+  const values = entries.map(e => e.maxWeight);
+  const last = entries[entries.length - 1];
+  let deltaHtml = '';
+  if(entries.length >= 2){
+    const prev = entries[entries.length - 2];
+    const diff = last.maxWeight - prev.maxWeight;
+    const cls = diff > 0 ? 'up' : diff < 0 ? 'down' : 'same';
+    const arrow = diff > 0 ? '▲' : diff < 0 ? '▼' : '=';
+    const diffTxt = diff === 0 ? 'igual' : `${diff > 0 ? '+' : ''}${diff}kg`;
+    deltaHtml = `<span class="stat-delta ${cls}">${arrow} ${diffTxt}</span>`;
+  }
+  const lastSetsStr = last.sets.map(s => `${s.weight}×${s.reps}`).join('  ·  ');
+  const videoUrl = getExerciseVideo(name);
+  const videoHtml = videoUrl ? `<a href="${esc(videoUrl)}" target="_blank" rel="noopener" class="video-link">▶ Ver video</a>` : '';
+  return `
+    <div class="stat-card">
+      <div class="stat-ex-top">
+        <span class="stat-ex-name">${esc(name)}</span>
+        ${deltaHtml}
+      </div>
+      ${videoHtml}
+      ${sparkline(values)}
+      <div class="stat-last">Última (${esc(last.dateLabel)}): ${esc(lastSetsStr)}</div>
+    </div>`;
+}
+
+function renderStats(){
+  const labels = distinctRoutineLabels();
+  if(labels.length === 0){
+    return `<div class="header"><span class="eyebrow">Estadísticas</span><h1>Estadísticas</h1></div>
+    <div class="empty">Todavía no hay sesiones guardadas con una rutina.<br>Registra al menos una en "Hoy" para ver tu progreso aquí.</div>`;
+  }
+  if(!selectedStatRoutine || !labels.includes(selectedStatRoutine)) selectedStatRoutine = labels[0];
+  const data = statsForRoutine(selectedStatRoutine);
+  const names = Array.from(data.exerciseMap.keys());
+  return `
+    <div class="header"><span class="eyebrow">Estadísticas</span><h1>Estadísticas</h1></div>
+    <div class="chip-row">
+      ${labels.map(l => `<div class="chip ${selectedStatRoutine===l?'selected':''}" data-role="stat-routine-select" data-val="${esc(l)}">${esc(l)}</div>`).join('')}
+    </div>
+    <div class="stat-summary">
+      <div><div class="num">${data.totalSessions}</div><div class="lbl">Sesiones</div></div>
+      <div><div class="num">${esc(data.first)}</div><div class="lbl">Primera</div></div>
+      <div><div class="num">${esc(data.last)}</div><div class="lbl">Última</div></div>
+    </div>
+    ${names.length ? names.map(n => renderStatsExerciseCard(n, data.exerciseMap.get(n))).join('')
+      : `<div class="empty">Esta rutina todavía no tiene series registradas.</div>`}
+  `;
+}
+
+function sessionsByDate(iso){
+  return sessions.filter(s => s.date === iso);
+}
+
+function renderCalDayDetail(iso){
+  if(!iso) return '';
+  const daySessions = sessionsByDate(iso);
+  if(daySessions.length === 0){
+    return `<div class="empty">No hay registro este día.</div>`;
+  }
+  return daySessions.map(s => `
+    <div class="hist-item" style="cursor:default;">
+      <div class="hist-top">
+        <span class="hist-date">${esc(s.dateLabel)}</span>
+        ${s.routine ? `<span class="hist-routine">${esc(s.routine)}</span>` : ''}
+      </div>
+      <div class="hist-detail">
+        ${s.exercises.map(ex => `
+          <div class="hist-ex">
+            <div class="hist-ex-name">${esc(ex.name)}</div>
+            <div class="hist-sets">${ex.sets.map(st => `${st.weight}kg×${st.reps}`).join('  ·  ')}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderCalendar(){
+  const year = calDate.getFullYear(), month = calDate.getMonth();
+  const t = todayInfo();
+  const firstWeekday = new Date(year, month, 1).getDay();
+  const totalDays = new Date(year, month + 1, 0).getDate();
+
+  let cells = '';
+  for(let i = 0; i < firstWeekday; i++){
+    cells += `<div class="cal-cell empty"></div>`;
+  }
+  for(let day = 1; day <= totalDays; day++){
+    const iso = `${year}-${pad2(month + 1)}-${pad2(day)}`;
+    const hasData = sessionsByDate(iso).length > 0;
+    const isToday = iso === t.iso;
+    const isSelected = iso === selectedCalDay;
+    cells += `<div class="cal-cell ${hasData?'has-data':''} ${isToday?'is-today':''} ${isSelected?'selected':''}" data-role="cal-day" data-iso="${iso}">${day}</div>`;
+  }
+
+  return `
+    <div class="header">
+      <span class="eyebrow">Calendario</span>
+      <h1>Calendario</h1>
+    </div>
+    <div class="cal-nav">
+      <button data-role="cal-prev">‹</button>
+      <span class="cal-month-label">${MESES_FULL[month]} ${year}</span>
+      <button data-role="cal-next">›</button>
+    </div>
+    <div class="cal-weekdays">${DIAS_CORTOS.map(d => `<div class="cal-weekday">${d}</div>`).join('')}</div>
+    <div class="cal-grid">${cells}</div>
+    <div class="cal-detail-label">${selectedCalDay ? esc(selectedCalDay) : 'Toca un día'}</div>
+    ${renderCalDayDetail(selectedCalDay)}
+  `;
+}
+
+function renderBackupBox(){
+  return `
+    <div class="backup-box">
+      <div class="backup-label">Respaldo de tus datos (este navegador)</div>
+      <div class="backup-buttons">
+        <button data-role="export-backup">Exportar respaldo</button>
+        <button data-role="import-backup-btn">Importar respaldo</button>
+      </div>
+      <input type="file" accept="application/json" data-role="import-backup-input" style="display:none;">
+    </div>`;
+}
+
+function renderHistory(){
+  if(sessions.length === 0){
+    return `<div class="header"><span class="eyebrow">Historial</span><h1>Historial</h1></div>
+    <div class="empty">Todavía no hay sesiones guardadas.<br>Registra tu primer entrenamiento en la pestaña "Hoy".</div>
+    ${renderBackupBox()}`;
+  }
+  const ordered = [...sessions].reverse();
+  return `
+    <div class="header"><span class="eyebrow">Historial</span><h1>Historial</h1></div>
+    ${ordered.map(s => {
+      const totalSets = s.exercises.reduce((a,e)=>a+e.sets.length,0);
+      const open = expandedHistId === s.id;
+      return `
+      <div class="hist-item" data-role="hist-toggle" data-id="${s.id}">
+        <div class="hist-top">
+          <span class="hist-date">${esc(s.dateLabel)}</span>
+          ${s.routine ? `<span class="hist-routine">${esc(s.routine)}</span>` : ''}
+        </div>
+        <div class="hist-summary">${s.exercises.length} ejercicio${s.exercises.length===1?'':'s'} · ${totalSets} serie${totalSets===1?'':'s'}</div>
+        ${open ? `
+          <div class="hist-detail">
+            ${s.exercises.map(ex => `
+              <div class="hist-ex">
+                <div class="hist-ex-name">${esc(ex.name)}</div>
+                <div class="hist-sets">${ex.sets.map(st=>`${st.weight}kg×${st.reps}`).join('  ·  ')}</div>
+              </div>
+            `).join('')}
+            <button class="del-session" data-role="del-session" data-id="${s.id}">Eliminar sesión</button>
+          </div>` : ''}
+      </div>`;
+    }).join('')}
+    ${renderBackupBox()}
+  `;
+}
+
+function render(){
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <div class="brand">GABI <span>TRAINING</span></div>
+    <div class="tabs">
+      <button class="tab ${view==='today'?'active':''}" data-role="tab-today">HOY</button>
+      <button class="tab ${view==='history'?'active':''}" data-role="tab-history">HIST</button>
+      <button class="tab ${view==='stats'?'active':''}" data-role="tab-stats">STATS</button>
+      <button class="tab ${view==='calendar'?'active':''}" data-role="tab-calendar">CAL</button>
+    </div>
+    ${view === 'today' ? renderToday() : view === 'history' ? renderHistory() : view === 'stats' ? renderStats() : renderCalendar()}
+  `;
+  if(view === 'today'){
+    const bar = el(`
+      <div class="bottom-bar">
+        <div class="inner">
+          <button class="save-btn" data-role="save-session" ${canSave() && !saving ? '' : 'disabled'}>${saving ? 'GUARDANDO...' : 'GUARDAR SESIÓN'}</button>
+          <div class="save-msg">${esc(saveMsg)}</div>
+        </div>
+      </div>`);
+    document.getElementById('app').appendChild(bar);
+  }
+  attachListeners();
+}
+
+function attachListeners(){
+  const app = document.getElementById('app');
+
+  const tabToday = app.querySelector('[data-role="tab-today"]');
+  const tabHistory = app.querySelector('[data-role="tab-history"]');
+  const tabStats = app.querySelector('[data-role="tab-stats"]');
+  const tabCalendar = app.querySelector('[data-role="tab-calendar"]');
+  if(tabToday) tabToday.onclick = () => { view='today'; render(); };
+  if(tabHistory) tabHistory.onclick = () => { view='history'; render(); };
+  if(tabStats) tabStats.onclick = () => { view='stats'; render(); };
+  if(tabCalendar) tabCalendar.onclick = () => {
+    view='calendar';
+    if(!selectedCalDay) selectedCalDay = todayInfo().iso;
+    render();
+  };
+
+  const calPrev = app.querySelector('[data-role="cal-prev"]');
+  const calNext = app.querySelector('[data-role="cal-next"]');
+  if(calPrev) calPrev.onclick = () => { calDate = new Date(calDate.getFullYear(), calDate.getMonth() - 1, 1); render(); };
+  if(calNext) calNext.onclick = () => { calDate = new Date(calDate.getFullYear(), calDate.getMonth() + 1, 1); render(); };
+  app.querySelectorAll('[data-role="cal-day"]').forEach(cell => {
+    cell.onclick = () => { selectedCalDay = cell.dataset.iso; render(); };
+  });
+
+  app.querySelectorAll('[data-role="stat-routine-select"]').forEach(chip => {
+    chip.onclick = () => { selectedStatRoutine = chip.dataset.val; render(); };
+  });
+
+  app.querySelectorAll('[data-role="daytype-select"]').forEach(chip => {
+    chip.onclick = () => { currentSession.dayType = chip.dataset.val; render(); };
+  });
+  const daytypeAdd = app.querySelector('[data-role="daytype-add"]');
+  if(daytypeAdd) daytypeAdd.onclick = () => { addingDayType = true; render(); };
+  const daytypeAddInput = app.querySelector('[data-role="daytype-add-input"]');
+  const daytypeAddConfirm = app.querySelector('[data-role="daytype-add-confirm"]');
+  if(daytypeAddConfirm && daytypeAddInput){
+    daytypeAddConfirm.onclick = () => addDayType(daytypeAddInput.value);
+    daytypeAddInput.onkeydown = (e) => { if(e.key === 'Enter') addDayType(daytypeAddInput.value); };
+    daytypeAddInput.focus();
+  }
+
+  app.querySelectorAll('[data-role="variant-select"]').forEach(chip => {
+    chip.onclick = () => { currentSession.variant = chip.dataset.val; render(); };
+  });
+  const variantAdd = app.querySelector('[data-role="variant-add"]');
+  if(variantAdd) variantAdd.onclick = () => { addingVariant = true; render(); };
+  const variantAddInput = app.querySelector('[data-role="variant-add-input"]');
+  const variantAddConfirm = app.querySelector('[data-role="variant-add-confirm"]');
+  if(variantAddConfirm && variantAddInput){
+    variantAddConfirm.onclick = () => addVariant(variantAddInput.value);
+    variantAddInput.onkeydown = (e) => { if(e.key === 'Enter') addVariant(variantAddInput.value); };
+    variantAddInput.focus();
+  }
+
+  app.querySelectorAll('[data-role="video-add"], [data-role="video-edit"]').forEach(b => {
+    b.onclick = () => { editingVideoFor = b.dataset.ex; render(); };
+  });
+  app.querySelectorAll('[data-role="video-save"]').forEach(b => {
+    b.onclick = () => {
+      const input = app.querySelector(`[data-role="video-input"][data-ex="${b.dataset.ex}"]`);
+      const ex = currentSession.exercises.find(x => x.id === b.dataset.ex);
+      if(ex && input) setExerciseVideo(ex.name, input.value);
+    };
+  });
+  app.querySelectorAll('[data-role="video-input"]').forEach(inp => {
+    inp.onkeydown = (e) => {
+      if(e.key === 'Enter'){
+        const ex = currentSession.exercises.find(x => x.id === inp.dataset.ex);
+        if(ex) setExerciseVideo(ex.name, inp.value);
+      }
+    };
+  });
+
+  const addExBtn = app.querySelector('[data-role="add-exercise"]');
+  if(addExBtn) addExBtn.onclick = addExercise;
+
+  app.querySelectorAll('[data-role="remove-ex"]').forEach(b=>{
+    b.onclick = () => removeExercise(b.dataset.ex);
+  });
+  app.querySelectorAll('[data-role="ex-name"]').forEach(inp=>{
+    const exSuggestList = app.querySelector(`[data-role="ex-suggest"][data-ex="${inp.dataset.ex}"]`);
+    const select = (val) => {
+      const ex = currentSession.exercises.find(x=>x.id===inp.dataset.ex);
+      if(ex) ex.name = val;
+      render();
+    };
+    inp.oninput = (e) => {
+      const ex = currentSession.exercises.find(x=>x.id===inp.dataset.ex);
+      if(ex) ex.name = e.target.value;
+      showSuggestions(exSuggestList, filterNames(e.target.value, recentExerciseNames()), select);
+    };
+    inp.onfocus = () => {
+      showSuggestions(exSuggestList, filterNames(inp.value, recentExerciseNames()), select);
+    };
+    inp.onblur = () => setTimeout(() => {
+      if(exSuggestList) exSuggestList.style.display = 'none';
+      render();
+    }, 150);
+  });
+  app.querySelectorAll('[data-role="add-set"]').forEach(b=>{
+    b.onclick = () => addSetSlot(b.dataset.ex);
+  });
+  app.querySelectorAll('[data-role="del-set"]').forEach(b=>{
+    b.onclick = (e) => { e.stopPropagation(); removeSet(b.dataset.ex, parseInt(b.dataset.idx)); };
+  });
+  app.querySelectorAll('[data-role="confirm-set"]').forEach(b=>{
+    b.onclick = () => {
+      const ex = b.dataset.ex, idx = parseInt(b.dataset.idx);
+      const w = app.querySelector(`[data-role="w-input"][data-ex="${ex}"][data-idx="${idx}"]`).value;
+      const r = app.querySelector(`[data-role="r-input"][data-ex="${ex}"][data-idx="${idx}"]`).value;
+      if(w === '' || r === '') return;
+      confirmSet(ex, idx, w, r);
+    };
+  });
+
+  // history
+  app.querySelectorAll('[data-role="hist-toggle"]').forEach(item=>{
+    item.onclick = (e) => {
+      if(e.target.dataset.role === 'del-session') return;
+      const id = item.dataset.id;
+      expandedHistId = expandedHistId === id ? null : id;
+      render();
+    };
+  });
+  app.querySelectorAll('[data-role="del-session"]').forEach(b=>{
+    b.onclick = (e) => { e.stopPropagation(); deleteSession(b.dataset.id); };
+  });
+
+  const saveBtn = app.querySelector('[data-role="save-session"]');
+  if(saveBtn) saveBtn.onclick = saveSession;
+
+  const exportBtn = app.querySelector('[data-role="export-backup"]');
+  if(exportBtn) exportBtn.onclick = exportBackup;
+  const importBtn = app.querySelector('[data-role="import-backup-btn"]');
+  const importInput = app.querySelector('[data-role="import-backup-input"]');
+  if(importBtn && importInput){
+    importBtn.onclick = () => importInput.click();
+    importInput.onchange = (e) => importBackup(e.target.files[0]);
+  }
+}
+
+loadSessions();
+</script>
+</body>
+</html>
