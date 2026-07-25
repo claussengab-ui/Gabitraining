@@ -489,6 +489,7 @@ function setExerciseName(exId, val){
 function addSetSlot(exId){
   const ex = currentSession.exercises.find(e => e.id === exId);
   if(!ex) return;
+  ex.sets.forEach(s => { if(s.pending && s.weight !== '' && s.reps !== '') s.pending = false; });
   ex.sets.push({weight:'', reps:'', pending:true});
   render();
 }
@@ -513,8 +514,13 @@ async function saveSession(){
     ...currentSession,
     routine: routineLabel,
     exercises: currentSession.exercises
-      .filter(ex => ex.name.trim() && ex.sets.some(s => !s.pending))
-      .map(ex => ({...ex, sets: ex.sets.filter(s => !s.pending)}))
+      .map(ex => ({
+        ...ex,
+        sets: ex.sets
+          .filter(s => !s.pending || (s.weight !== '' && s.reps !== ''))
+          .map(s => ({ weight: s.weight, reps: s.reps }))
+      }))
+      .filter(ex => ex.name.trim() && ex.sets.length > 0)
   };
   sessions.push(cleaned);
   const ok = await persist();
@@ -595,11 +601,12 @@ function renderPlates(ex){
 function renderPendingEntry(ex){
   const idx = ex.sets.findIndex(s => s.pending);
   if(idx === -1) return '';
+  const s = ex.sets[idx];
   return `
     <div class="set-entry">
-      <input type="number" inputmode="decimal" placeholder="kg" data-role="w-input" data-ex="${ex.id}" data-idx="${idx}">
+      <input type="number" inputmode="decimal" placeholder="kg" value="${esc(s.weight)}" data-role="w-input" data-ex="${ex.id}" data-idx="${idx}">
       <span class="x">×</span>
-      <input type="number" inputmode="numeric" placeholder="reps" data-role="r-input" data-ex="${ex.id}" data-idx="${idx}">
+      <input type="number" inputmode="numeric" placeholder="reps" value="${esc(s.reps)}" data-role="r-input" data-ex="${ex.id}" data-idx="${idx}">
       <button class="set-confirm" data-role="confirm-set" data-ex="${ex.id}" data-idx="${idx}">OK</button>
     </div>`;
 }
@@ -1016,6 +1023,18 @@ function attachListeners(){
       const r = app.querySelector(`[data-role="r-input"][data-ex="${ex}"][data-idx="${idx}"]`).value;
       if(w === '' || r === '') return;
       confirmSet(ex, idx, w, r);
+    };
+  });
+  app.querySelectorAll('[data-role="w-input"]').forEach(inp => {
+    inp.oninput = (e) => {
+      const ex = currentSession.exercises.find(x => x.id === inp.dataset.ex);
+      if(ex && ex.sets[parseInt(inp.dataset.idx)]) ex.sets[parseInt(inp.dataset.idx)].weight = e.target.value;
+    };
+  });
+  app.querySelectorAll('[data-role="r-input"]').forEach(inp => {
+    inp.oninput = (e) => {
+      const ex = currentSession.exercises.find(x => x.id === inp.dataset.ex);
+      if(ex && ex.sets[parseInt(inp.dataset.idx)]) ex.sets[parseInt(inp.dataset.idx)].reps = e.target.value;
     };
   });
 
