@@ -182,6 +182,17 @@
   .hist-sets{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-muted);}
 
   .del-session{background:none;border:none;color:var(--gray-accent); font-family:'JetBrains Mono',monospace; font-size:11px; margin-top:10px; cursor:pointer;}
+  .edit-session-btn{background:none;border:none;color:var(--lavender); font-family:'JetBrains Mono',monospace; font-size:11px; margin-top:10px; margin-right:16px; cursor:pointer;}
+
+  .edit-banner{
+    display:flex; justify-content:space-between; align-items:center;
+    background:var(--lavender-dim); border:1px solid var(--lavender); border-radius:10px;
+    padding:10px 14px; margin-bottom:16px; font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text);
+  }
+  .edit-banner button{
+    background:none; border:1px solid var(--lavender); color:var(--lavender); border-radius:6px;
+    padding:5px 10px; font-family:'Bebas Neue',sans-serif; font-size:13px; cursor:pointer;
+  }
 
   .backup-box{margin-top:20px; padding:14px; border:1px solid var(--line); border-radius:12px; background:var(--surface);}
   .backup-label{
@@ -258,6 +269,7 @@
 <script>
 const STORAGE_KEY = 'gymlog:sessions';
 const STORAGE_KEY_NAMES = 'gymlog:knownNames';
+const STORAGE_KEY_DRAFT = 'gymlog:draft';
 const LS_PREFIX = 'gabitraining:';
 
 // Shim que imita la API de window.storage pero usando localStorage del navegador,
@@ -301,6 +313,8 @@ let selectedStatRoutine = null;
 let calDate = new Date();
 let selectedCalDay = null;
 let editingVideoFor = null;
+let editingSessionId = null;
+let draftSaveTimer = null;
 let view = 'today';
 let currentSession = null; // {date, dateLabel, routine, exercises:[{id,name,sets:[{weight,reps}]}]}
 let expandedHistId = null;
@@ -354,8 +368,28 @@ async function loadSessions(){
     if(!knownNames.exerciseVideos){ knownNames.exerciseVideos = {}; migrated = true; }
     if(migrated){ try{ await storage.set(STORAGE_KEY_NAMES, JSON.stringify(knownNames), false); }catch(e){} }
   }
-  currentSession = newSession();
+  currentSession = await loadTodayDraftOrNew();
   render();
+}
+
+async function loadTodayDraftOrNew(){
+  const t = todayInfo();
+  try{
+    const draftRes = await storage.get(STORAGE_KEY_DRAFT, false);
+    if(draftRes && draftRes.value){
+      const draft = JSON.parse(draftRes.value);
+      if(draft && draft.date === t.iso) return draft;
+    }
+  }catch(e){}
+  return newSession();
+}
+
+function schedulePersistDraft(){
+  if(editingSessionId) return; // no guardar como borrador de "hoy" si se está editando otro día
+  clearTimeout(draftSaveTimer);
+  draftSaveTimer = setTimeout(async () => {
+    try{ await storage.set(STORAGE_KEY_DRAFT, JSON.stringify(currentSession), false); }catch(e){}
+  }, 350);
 }
 
 async function persistKnownNames(){
@@ -522,14 +556,54 @@ async function saveSession(){
       }))
       .filter(ex => ex.name.trim() && ex.sets.length > 0)
   };
-  sessions.push(cleaned);
+  const wasEditing = !!editingSessionId;
+  if(wasEditing){
+    const idx = sessions.findIndex(s => s.id === editingSessionId);
+    if(idx !== -1) sessions[idx] = cleaned;
+    else sessions.push(cleaned);
+  } else {
+    sessions.push(cleaned);
+  }
   const ok = await persist();
   await rememberExerciseNames(cleaned.exercises.map(e => e.name));
   saving = false;
   saveMsg = ok ? 'Sesión guardada ✓' : 'No se pudo guardar, intenta de nuevo';
-  if(ok) currentSession = newSession();
+  if(ok){
+    if(wasEditing){
+      expandedHistId = editingSessionId;
+      editingSessionId = null;
+      view = 'history';
+      currentSession = await loadTodayDraftOrNew();
+    } else {
+      try{ await storage.delete(STORAGE_KEY_DRAFT); }catch(e){}
+      currentSession = newSession();
+    }
+  }
   render();
   setTimeout(()=>{ saveMsg=''; render(); }, 2500);
+}
+
+function editSession(id){
+  const s = sessions.find(x => x.id === id);
+  if(!s) return;
+  editingSessionId = id;
+  currentSession = JSON.parse(JSON.stringify(s));
+  view = 'today';
+  render();
+}
+
+async function cancelEdit(){
+  editingSessionId = null;
+  currentSession = await loadTodayDraftOrNew();
+  view = 'history';
+  render();
+}
+
+function editSetSlot(exId, idx){
+  const ex = currentSession.exercises.find(e => e.id === exId);
+  if(!ex || !ex.sets[idx]) return;
+  ex.sets[idx].pending = true;
+  render();
 }
 
 async function deleteSession(id){
@@ -665,11 +739,17 @@ function renderChipRow(options, selected, roleSelect, roleAdd, adding, roleAddIn
 
 function renderToday(){
   const t = currentSession.dateLabel;
+  const editBanner = editingSessionId ? `
+    <div class="edit-banner">
+      <span>✎ Editando sesión guardada</span>
+      <button data-role="cancel-edit">Cancelar</button>
+    </div>` : '';
   return `
     <div class="header">
-      <span class="eyebrow">Hoy</span>
+      <span class="eyebrow">${editingSessionId ? 'Editando' : 'Hoy'}</span>
       <h1>${t}</h1>
     </div>
+    ${editBanner}
     <label class="field-label">Día</label>
     ${renderChipRow(knownNames.dayTypes, currentSession.dayType, 'daytype-select', 'daytype-add', addingDayType, 'daytype-add-input', 'daytype-add-confirm')}
     <label class="field-label">Rutina</label>
@@ -878,6 +958,7 @@ function renderHistory(){
                 <div class="hist-sets">${ex.sets.map(st=>`${st.weight}kg×${st.reps}`).join('  ·  ')}</div>
               </div>
             `).join('')}
+            <button class="edit-session-btn" data-role="edit-session" data-id="${s.id}">Editar sesión</button>
             <button class="del-session" data-role="del-session" data-id="${s.id}">Eliminar sesión</button>
           </div>` : ''}
       </div>`;
@@ -902,13 +983,14 @@ function render(){
     const bar = el(`
       <div class="bottom-bar">
         <div class="inner">
-          <button class="save-btn" data-role="save-session" ${canSave() && !saving ? '' : 'disabled'}>${saving ? 'GUARDANDO...' : 'GUARDAR SESIÓN'}</button>
+          <button class="save-btn" data-role="save-session" ${canSave() && !saving ? '' : 'disabled'}>${saving ? 'GUARDANDO...' : (editingSessionId ? 'GUARDAR CAMBIOS' : 'GUARDAR SESIÓN')}</button>
           <div class="save-msg">${esc(saveMsg)}</div>
         </div>
       </div>`);
     document.getElementById('app').appendChild(bar);
   }
   attachListeners();
+  schedulePersistDraft();
 }
 
 function attachListeners(){
@@ -1001,6 +1083,7 @@ function attachListeners(){
       const ex = currentSession.exercises.find(x=>x.id===inp.dataset.ex);
       if(ex) ex.name = e.target.value;
       showSuggestions(exSuggestList, filterNames(e.target.value, recentExerciseNames()), select);
+      schedulePersistDraft();
     };
     inp.onfocus = () => {
       showSuggestions(exSuggestList, filterNames(inp.value, recentExerciseNames()), select);
@@ -1016,6 +1099,12 @@ function attachListeners(){
   app.querySelectorAll('[data-role="del-set"]').forEach(b=>{
     b.onclick = (e) => { e.stopPropagation(); removeSet(b.dataset.ex, parseInt(b.dataset.idx)); };
   });
+  app.querySelectorAll('[data-role="edit-slot"]').forEach(b=>{
+    b.onclick = (e) => {
+      if(e.target.dataset.role === 'del-set') return;
+      editSetSlot(b.dataset.ex, parseInt(b.dataset.idx));
+    };
+  });
   app.querySelectorAll('[data-role="confirm-set"]').forEach(b=>{
     b.onclick = () => {
       const ex = b.dataset.ex, idx = parseInt(b.dataset.idx);
@@ -1029,19 +1118,21 @@ function attachListeners(){
     inp.oninput = (e) => {
       const ex = currentSession.exercises.find(x => x.id === inp.dataset.ex);
       if(ex && ex.sets[parseInt(inp.dataset.idx)]) ex.sets[parseInt(inp.dataset.idx)].weight = e.target.value;
+      schedulePersistDraft();
     };
   });
   app.querySelectorAll('[data-role="r-input"]').forEach(inp => {
     inp.oninput = (e) => {
       const ex = currentSession.exercises.find(x => x.id === inp.dataset.ex);
       if(ex && ex.sets[parseInt(inp.dataset.idx)]) ex.sets[parseInt(inp.dataset.idx)].reps = e.target.value;
+      schedulePersistDraft();
     };
   });
 
   // history
   app.querySelectorAll('[data-role="hist-toggle"]').forEach(item=>{
     item.onclick = (e) => {
-      if(e.target.dataset.role === 'del-session') return;
+      if(e.target.dataset.role === 'del-session' || e.target.dataset.role === 'edit-session') return;
       const id = item.dataset.id;
       expandedHistId = expandedHistId === id ? null : id;
       render();
@@ -1050,6 +1141,11 @@ function attachListeners(){
   app.querySelectorAll('[data-role="del-session"]').forEach(b=>{
     b.onclick = (e) => { e.stopPropagation(); deleteSession(b.dataset.id); };
   });
+  app.querySelectorAll('[data-role="edit-session"]').forEach(b=>{
+    b.onclick = (e) => { e.stopPropagation(); editSession(b.dataset.id); };
+  });
+  const cancelEditBtn = app.querySelector('[data-role="cancel-edit"]');
+  if(cancelEditBtn) cancelEditBtn.onclick = () => cancelEdit();
 
   const saveBtn = app.querySelector('[data-role="save-session"]');
   if(saveBtn) saveBtn.onclick = saveSession;
