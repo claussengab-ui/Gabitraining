@@ -1182,7 +1182,19 @@ function renderHistory(){
   `;
 }
 
+let lastPushedView = null;
+
 function render(){
+  if(view !== lastPushedView){
+    try{
+      if(lastPushedView === null){
+        history.replaceState({ view }, '', '');
+      } else {
+        history.pushState({ view }, '', '');
+      }
+    }catch(e){}
+    lastPushedView = view;
+  }
   const app = document.getElementById('app');
   app.innerHTML = `
     <div class="brand">GABI <span>TRAINING</span></div>
@@ -1414,6 +1426,13 @@ function attachListeners(){
     importInput.onchange = (e) => importBackup(e.target.files[0]);
   }
 }
+
+window.addEventListener('popstate', (e) => {
+  const v = (e.state && e.state.view) || 'today';
+  view = v;
+  lastPushedView = v;
+  render();
+});
 
 loadSessions();
 </script>
