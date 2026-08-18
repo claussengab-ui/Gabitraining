@@ -30,12 +30,24 @@
     font-family:'Inter',system-ui,sans-serif;
     -webkit-tap-highlight-color:transparent;
     padding-bottom:96px;
+    background-size:cover; background-position:center top; background-repeat:no-repeat; background-attachment:fixed;
   }
-  .app{max-width:520px;margin:0 auto;padding:20px 16px 12px;}
+  .bg-overlay{
+    position:fixed; inset:0; z-index:0; pointer-events:none; display:none;
+    background:rgba(15,12,20,0.80);
+  }
+  body.has-bg .bg-overlay{display:block;}
+  .app{max-width:520px;margin:0 auto;padding:20px 16px 12px; position:relative; z-index:1;}
+
+  .brand-row{display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;}
+  .bg-btn{
+    background:var(--surface-2); border:1px solid var(--line); color:var(--text-muted);
+    border-radius:7px; padding:5px 10px; font-family:'JetBrains Mono',monospace; font-size:11px; cursor:pointer;
+  }
 
   .brand{
     font-family:'Bebas Neue',sans-serif; font-size:15px; letter-spacing:0.18em;
-    color:var(--lavender); text-transform:uppercase; margin-bottom:14px;
+    color:var(--lavender); text-transform:uppercase;
   }
   .brand span{color:var(--text-muted);}
 
@@ -295,6 +307,7 @@
 </style>
 </head>
 <body>
+<div class="bg-overlay" id="bg-overlay"></div>
 <div class="app" id="app"></div>
 
 <script>
@@ -346,6 +359,8 @@ let calendarNeedsScroll = false;
 let calendarScrollToDetail = false;
 let editingVideoFor = null;
 let editingSessionId = null;
+let bgImageSet = false;
+const STORAGE_KEY_BG = 'gymlog:bgImage';
 let draftSaveTimer = null;
 let view = 'today';
 let currentSession = null; // {date, dateLabel, routine, exercises:[{id,name,sets:[{weight,reps}]}]}
@@ -376,7 +391,52 @@ function newExercise(name){
   return { id: 'e'+Date.now()+Math.random().toString(36).slice(2,6), name: name||'', sets: [] };
 }
 
+function applyBackgroundImage(dataUrl){
+  document.body.style.backgroundImage = `url("${dataUrl}")`;
+  document.body.classList.add('has-bg');
+  bgImageSet = true;
+}
+
+function removeBackgroundImageStyle(){
+  document.body.style.backgroundImage = '';
+  document.body.classList.remove('has-bg');
+  bgImageSet = false;
+}
+
+function handleBgFile(file){
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = async () => {
+      const maxW = 900;
+      const scale = Math.min(1, maxW / img.width);
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width * scale;
+      canvas.height = img.height * scale;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+      applyBackgroundImage(dataUrl);
+      try{ await storage.set(STORAGE_KEY_BG, dataUrl, false); }catch(err){}
+      render();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function removeBackgroundImage(){
+  removeBackgroundImageStyle();
+  try{ await storage.delete(STORAGE_KEY_BG); }catch(e){}
+  render();
+}
+
 async function loadSessions(){
+  try{
+    const bgRes = await storage.get(STORAGE_KEY_BG, false);
+    if(bgRes && bgRes.value) applyBackgroundImage(bgRes.value);
+  }catch(e){}
   try{
     const res = await storage.get(STORAGE_KEY, false);
     sessions = res && res.value ? JSON.parse(res.value) : [];
@@ -1197,7 +1257,14 @@ function render(){
   }
   const app = document.getElementById('app');
   app.innerHTML = `
-    <div class="brand">GABI <span>TRAINING</span></div>
+    <div class="brand-row">
+      <div class="brand">GABI <span>TRAINING</span></div>
+      <div style="display:flex; gap:6px;">
+        <button class="bg-btn" data-role="bg-btn">${bgImageSet ? '🖼 cambiar' : '🖼 fondo'}</button>
+        ${bgImageSet ? `<button class="bg-btn" data-role="bg-remove">quitar</button>` : ''}
+      </div>
+      <input type="file" accept="image/*" data-role="bg-input" style="display:none;">
+    </div>
     <div class="tabs">
       <button class="tab ${view==='today'?'active':''}" data-role="tab-today">HOY</button>
       <button class="tab ${view==='history'?'active':''}" data-role="tab-history">HIST</button>
@@ -1237,6 +1304,13 @@ function render(){
 
 function attachListeners(){
   const app = document.getElementById('app');
+
+  const bgBtn = app.querySelector('[data-role="bg-btn"]');
+  const bgInput = app.querySelector('[data-role="bg-input"]');
+  const bgRemove = app.querySelector('[data-role="bg-remove"]');
+  if(bgBtn && bgInput) bgBtn.onclick = () => bgInput.click();
+  if(bgInput) bgInput.onchange = (e) => handleBgFile(e.target.files[0]);
+  if(bgRemove) bgRemove.onclick = () => removeBackgroundImage();
 
   const tabToday = app.querySelector('[data-role="tab-today"]');
   const tabHistory = app.querySelector('[data-role="tab-history"]');
