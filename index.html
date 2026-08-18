@@ -246,7 +246,11 @@
     padding:6px 0; margin-bottom:8px; position:sticky; top:0; background:var(--bg); z-index:5;
   }
   .cal-weekdays{display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-bottom:6px; width:100%;}
-  .cal-weekday{text-align:center; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-muted);}
+  .cal-weekday{
+    width:100%; min-width:0; height:20px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-muted);
+  }
   .cal-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:6px; width:100%;}
   .cal-cell{
     width:100%; min-width:0; height:42px;
@@ -342,7 +346,7 @@ let saveMsg = '';
 const DIAS = ['DOMINGO','LUNES','MARTES','MIÉRCOLES','JUEVES','VIERNES','SÁBADO'];
 const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 const MESES_FULL = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-const DIAS_CORTOS = ['D','L','M','X','J','V','S'];
+const DIAS_CORTOS = ['L','M','X','J','V','S','D'];
 
 function pad2(n){ return String(n).padStart(2, '0'); }
 
@@ -1068,7 +1072,7 @@ function renderCalDayDetail(iso){
 }
 
 function renderMonthBlock(year, month, todayIso){
-  const firstWeekday = new Date(year, month, 1).getDay();
+  const firstWeekday = (new Date(year, month, 1).getDay() + 6) % 7;
   const totalDays = new Date(year, month + 1, 0).getDate();
   const isCurrentMonth = `${year}-${pad2(month+1)}` === todayIso.slice(0,7);
 
