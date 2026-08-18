@@ -226,6 +226,16 @@
     font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--lavender);
     margin-top:6px; line-height:1.4;
   }
+  .stat-hist-row{
+    background:var(--surface); border:1px solid var(--line); border-radius:10px;
+    padding:11px 13px; margin-bottom:8px;
+  }
+  .stat-hist-date{display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600; margin-bottom:4px;}
+  .stat-hist-routine{
+    font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--lavender);
+    background:var(--lavender-dim); padding:2px 7px; border-radius:5px; font-weight:400;
+  }
+  .stat-hist-sets{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-muted);}
 
   .lib-add-row{display:flex; gap:8px; margin-bottom:18px;}
   .lib-add-row input{flex:1;}
@@ -330,7 +340,7 @@ const SEED_NAMES = {
 };
 let addingDayType = false;
 let addingVariant = false;
-let selectedStatRoutine = null;
+let selectedStatExercise = null;
 let selectedCalDay = null;
 let calendarNeedsScroll = false;
 let calendarScrollToDetail = false;
@@ -846,10 +856,10 @@ function renderToday(){
   `;
 }
 
-function distinctRoutineLabels(){
-  const seen = [];
-  sessions.forEach(s => { if(s.routine && !seen.includes(s.routine)) seen.push(s.routine); });
-  return seen;
+function allTrainedExerciseNames(){
+  const set = new Set();
+  sessions.forEach(s => s.exercises.forEach(ex => { if(ex.sets && ex.sets.length) set.add(ex.name); }));
+  return Array.from(set).sort((a, b) => a.localeCompare(b, 'es'));
 }
 
 function epley1RM(weight, reps){
@@ -867,28 +877,22 @@ function summarizeSets(sets){
   return { volume, best1RM, bestSet };
 }
 
-function statsForRoutine(routineLabel){
-  const list = sessions.filter(s => s.routine === routineLabel);
-  const exerciseMap = new Map();
-  list.forEach(s => {
-    s.exercises.forEach(ex => {
-      if(!ex.sets.length) return;
+function entriesForExercise(name){
+  const entries = [];
+  sessions.forEach(s => {
+    const ex = s.exercises.find(e => e.name === name);
+    if(ex && ex.sets && ex.sets.length){
       const summary = summarizeSets(ex.sets);
       const weights = ex.sets.map(st => parseFloat(st.weight) || 0);
-      const maxW = Math.max(...weights);
-      if(!exerciseMap.has(ex.name)) exerciseMap.set(ex.name, []);
-      exerciseMap.get(ex.name).push({
-        dateLabel: s.dateLabel, maxWeight: maxW, sets: ex.sets,
+      entries.push({
+        dateLabel: s.dateLabel, date: s.date, routine: s.routine || '',
+        maxWeight: Math.max(...weights), sets: ex.sets,
         volume: summary.volume, best1RM: summary.best1RM, bestSet: summary.bestSet
       });
-    });
+    }
   });
-  return {
-    totalSessions: list.length,
-    first: list.length ? list[0].dateLabel : '',
-    last: list.length ? list[list.length - 1].dateLabel : '',
-    exerciseMap
-  };
+  entries.sort((a, b) => a.date.localeCompare(b.date));
+  return entries;
 }
 
 const PROGRESSION_LABELS = {
@@ -1019,27 +1023,39 @@ function renderStatsExerciseCard(name, entries){
     </div>`;
 }
 
+function renderStatsHistoryRow(e){
+  const setsStr = e.sets.map(s => `${s.weight}×${s.reps}`).join('  ·  ');
+  return `
+    <div class="stat-hist-row">
+      <div class="stat-hist-date">
+        <span>${esc(e.dateLabel)}</span>
+        ${e.routine ? `<span class="stat-hist-routine">${esc(e.routine)}</span>` : ''}
+      </div>
+      <div class="stat-hist-sets">${esc(setsStr)} · 1RM est. ${e.best1RM.toFixed(1)}kg</div>
+    </div>`;
+}
+
 function renderStats(){
-  const labels = distinctRoutineLabels();
-  if(labels.length === 0){
+  const names = allTrainedExerciseNames();
+  if(names.length === 0){
     return `<div class="header"><span class="eyebrow">Estadísticas</span><h1>Estadísticas</h1></div>
-    <div class="empty">Todavía no hay sesiones guardadas con una rutina.<br>Registra al menos una en "Hoy" para ver tu progreso aquí.</div>`;
+    <div class="empty">Todavía no hay series registradas.<br>Registra al menos una sesión en "Hoy" para ver tu progreso aquí.</div>`;
   }
-  if(!selectedStatRoutine || !labels.includes(selectedStatRoutine)) selectedStatRoutine = labels[0];
-  const data = statsForRoutine(selectedStatRoutine);
-  const names = Array.from(data.exerciseMap.keys());
+  if(!selectedStatExercise || !names.includes(selectedStatExercise)) selectedStatExercise = names[0];
+  const entries = entriesForExercise(selectedStatExercise);
   return `
     <div class="header"><span class="eyebrow">Estadísticas</span><h1>Estadísticas</h1></div>
     <div class="chip-row">
-      ${labels.map(l => `<div class="chip ${selectedStatRoutine===l?'selected':''}" data-role="stat-routine-select" data-val="${esc(l)}">${esc(l)}</div>`).join('')}
+      ${names.map(n => `<div class="chip ${selectedStatExercise===n?'selected':''}" data-role="stat-exercise-select" data-val="${esc(n)}">${esc(n)}</div>`).join('')}
     </div>
     <div class="stat-summary">
-      <div><div class="num">${data.totalSessions}</div><div class="lbl">Sesiones</div></div>
-      <div><div class="num">${esc(data.first)}</div><div class="lbl">Primera</div></div>
-      <div><div class="num">${esc(data.last)}</div><div class="lbl">Última</div></div>
+      <div><div class="num">${entries.length}</div><div class="lbl">Sesiones</div></div>
+      <div><div class="num">${esc(entries[0] ? entries[0].dateLabel : '')}</div><div class="lbl">Primera</div></div>
+      <div><div class="num">${esc(entries[entries.length-1] ? entries[entries.length-1].dateLabel : '')}</div><div class="lbl">Última</div></div>
     </div>
-    ${names.length ? names.map(n => renderStatsExerciseCard(n, data.exerciseMap.get(n))).join('')
-      : `<div class="empty">Esta rutina todavía no tiene series registradas.</div>`}
+    ${renderStatsExerciseCard(selectedStatExercise, entries)}
+    <div class="cal-detail-label" style="margin-top:6px;">Historial completo (${entries.length})</div>
+    ${entries.slice().reverse().map(renderStatsHistoryRow).join('')}
   `;
 }
 
@@ -1256,8 +1272,8 @@ function attachListeners(){
     };
   });
 
-  app.querySelectorAll('[data-role="stat-routine-select"]').forEach(chip => {
-    chip.onclick = () => { selectedStatRoutine = chip.dataset.val; render(); };
+  app.querySelectorAll('[data-role="stat-exercise-select"]').forEach(chip => {
+    chip.onclick = () => { selectedStatExercise = chip.dataset.val; render(); };
   });
 
   app.querySelectorAll('[data-role="daytype-select"]').forEach(chip => {
